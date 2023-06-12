@@ -1,50 +1,76 @@
 import 'package:camera/camera.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../../../main.dart';
+import '../views/components/DisplayPictureScreen.dart';
 
 class CameraPageController extends GetxController {
   late CameraController newCameraController;
-  RxBool isCameraInitialized = false.obs;
-  // @override
-  // void onInit() {
-  //   newCameraController = CameraController(cameras[0], ResolutionPreset.max);
 
-  //   onNewCameraSelected(cameras[0]);
+  late CameraController cameraController;
+  late Future<void> initializeControllerFuture;
+  // late final CameraDescription camera;
 
-  //   super.onInit();
-  // }
+  List<XFile> listOfTakenImage = <XFile>[].obs;
 
-  // void onNewCameraSelected(CameraDescription cameraDescription) async {
-  //   final previousCameraController = newCameraController;
-  //   // Instantiating the camera controller
-  //   final CameraController cameraController = CameraController(
-  //     cameraDescription,
-  //     ResolutionPreset.high,
-  //     imageFormatGroup: ImageFormatGroup.jpeg,
-  //   );
+  @override
+  void onInit() {
+    super.onInit();
 
-  //   // Dispose the previous controller
-  //   await previousCameraController.dispose();
+    initializeCamera();
+  }
 
-  //   // Replace with the new controller
+  initializeCamera() async {
+    // Obtain a list of the available cameras on the device.
 
-  //   newCameraController = cameraController;
+    // To display the current output from the Camera,
+    // create a CameraController.
+    cameraController = CameraController(
+      // Get a specific camera from the list of available cameras.
+      firstCamera,
+      // Define the resolution to use.
+      ResolutionPreset.medium,
+    );
 
-  //   // Update UI if controller updated
-  //   cameraController.addListener(() {});
+    // Next, initialize the controller. This returns a Future.
+    initializeControllerFuture = cameraController.initialize();
 
-  //   // Initialize controller
-  //   try {
-  //     await cameraController.initialize();
-  //   } on CameraException catch (e) {
-  //     print('Error initializing camera: $e');
-  //   }
+// Get a specific camera from the list of available cameras.
+  }
 
-  //   // Update the Boolean
+  takenPicture() async {
+    // Take the Picture in a try / catch block. If anything goes wrong,
+    // catch the error.
+    try {
+      // Ensure that the camera is initialized.
+      await initializeControllerFuture;
 
-  //   isCameraInitialized.value = newCameraController.value.isInitialized;
+      // Attempt to take a picture and get the file `image`
+      // where it was saved.
 
-  //   newCameraController.takePicture();
-  // }
+      final image = await cameraController.takePicture();
+
+      listOfTakenImage.add(image);
+    } catch (e) {
+      // If an error occurs, log the error to the console.
+      print(e);
+    }
+  }
+
+  showImage(image) {
+    Get.to(
+      DisplayPictureScreen(
+        // Pass the automatically generated path to
+        // the DisplayPictureScreen widget.
+        imagePath: image.path,
+      ),
+    );
+  }
+
+  shareFile(imagePath) {
+    Share.shareXFiles([XFile(imagePath)], text: 'sending picture');
+  }
 
   @override
   void onReady() {
@@ -53,6 +79,8 @@ class CameraPageController extends GetxController {
 
   @override
   void onClose() {
+    cameraController.dispose();
+
     super.onClose();
   }
 }
