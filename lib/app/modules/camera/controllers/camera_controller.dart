@@ -28,7 +28,7 @@ class CameraPageController extends GetxController {
     // create a CameraController.
     cameraController = CameraController(
       // Get a specific camera from the list of available cameras.
-      firstCamera,
+      cameras.first,
       // Define the resolution to use.
       ResolutionPreset.medium,
     );
